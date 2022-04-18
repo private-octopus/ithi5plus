@@ -18,10 +18,10 @@ class ith5plus_item:
     def __init__(self, cell_list):
         self.service = cell_list[0]
         
-        self.a = ith5plus_item.get_float(cell_list[1])
-        self.b = ith5plus_item.get_float(cell_list[2])
-        self.c = ith5plus_item.get_float(cell_list[3])
-        self.d = ith5plus_item.get_float(cell_list[4])
+        self.count = ith5plus_item.get_float(cell_list[1])
+        self.share = ith5plus_item.get_float(cell_list[2])
+        self.w_count = ith5plus_item.get_float(cell_list[3])
+        self.w_share = ith5plus_item.get_float(cell_list[4])
 
         
 class ith5plus_entry:
@@ -32,10 +32,10 @@ class ith5plus_entry:
         self.day = day
         self.as_text = ""
         self.cc = ""
-        self.count1 = 0.0
-        self.pop_size1 = 0.0
-        self.count2 = 0.0
-        self.pop_size2 = 0.0
+        self.count = 0.0
+        self.w_count = 0.0
+        self.query_count = 0.0
+        self.w_query_count = 0.0
         self.items = dict()
         self.tot_items = dict()
         self.cc_items = dict()
@@ -48,10 +48,10 @@ class ith5plus_entry:
             # read the fist columns
             self.as_text = parts[0]
             self.cc = parts[1]
-            self.count1 = float(parts[2])
-            self.pop_size1 = float(parts[3])
-            self.count2 = float(parts[4])
-            self.pop_size2 = float(parts[5])
+            self.count = float(parts[2])
+            self.w_count = float(parts[3])
+            self.query_count = float(parts[4])
+            self.w_query_count = float(parts[5])
             # read a succession of service or groups
             remain_parts = parts[6:]
             while len(remain_parts) > 5:
@@ -69,7 +69,7 @@ class ith5plus_entry:
             print("line: \n" + line + "\n");
             exit(1)
             
-    def sum(self, category="srv"):
+    def sum(self, count, w_count, category="srv"):
         l = []
         if category == "cc_sum":
             l = list(self.cc_items.values())
@@ -79,36 +79,36 @@ class ith5plus_entry:
             l = list(self.items.values())
         sum_item = ith5plus_item([category, "0", "0", "0", "0"])
         for line_item in l:
-            sum_item.a += line_item.a
-            sum_item.b += line_item.b
-            sum_item.c += line_item.c
-            sum_item.d += line_item.d
+            sum_item.count += line_item.count
+            sum_item.share = sum_item.count/count
+            sum_item.w_count += line_item.w_count
+            sum_item.w_share = sum_item.w_count/w_count
         return sum_item
 
-    def sum_dict(dict1, dict2):
+    def sum_dict(dict1, dict2, count, w_count):
         for service in dict2:
             if not service in dict1:
                 dict1[service] = ith5plus_item([service, "0", "0", "0", "0"])
-            dict1[service].a += dict2[service].a
-            dict1[service].b += dict2[service].b
-            dict1[service].c += dict2[service].c
-            dict1[service].d += dict2[service].d
+            dict1[service].count += dict2[service].count
+            dict1[service].share = dict1[service].count / count
+            dict1[service].w_count += dict2[service].w_count
+            dict1[service].w_share = dict1[service].w_count / w_count
 
     def add_lists(self, other):
-        self.count1 += other.count1
-        self.pop_size1 += other.pop_size1
-        self.count2 += other.count2
-        self.pop_size2 += other.pop_size2
-        ith5plus_entry.sum_dict(self.items, other.items)
-        ith5plus_entry.sum_dict(self.tot_items, other.tot_items)
-        ith5plus_entry.sum_dict(self.cc_items, other.cc_items)
+        self.count += other.count
+        self.w_count += other.w_count
+        self.query_count += other.query_count
+        self.w_query_count += other.w_query_count
+        ith5plus_entry.sum_dict(self.items, other.items, self.count, self.w_count)
+        ith5plus_entry.sum_dict(self.tot_items, other.tot_items, self.count, self.w_count)
+        ith5plus_entry.sum_dict(self.cc_items, other.cc_items, self.count, self.w_count)
 
     big_services = ["xopnrvrs", "googlepdns", "cloudflare", "dnspai", "opendns", "onedns", "level3", "114dns", "quad9", "greenteamdns" ]
     def write_simple_count(self, F):
-        F.write(self.as_text + "," + self.cc + "," + str(self.count1))
+        F.write(self.as_text + "," + self.cc + "," + str(self.count))
         for service in ith5plus_entry.big_services:
             i5pi = self.items[service]
-            F.write("," + str(i5pi.a))
+            F.write("," + str(i5pi.count))
         F.write("\n")
 
     def write_simple_count_header(F):
@@ -147,7 +147,7 @@ class ithi5plus_file:
                 if not cc in cc_items:
                     cc_items[cc] = ith5plus_entry(i5pe.file_name, i5pe.year, i5pe.month, i5pe.day)
                     cc_items[cc].cc = cc
-                    cc_items[cc].as_text = "AS0"
+                    cc_items[cc].as_text = "AS*"
                 cc_items[cc].add_lists(i5pe)
             except Exception as e:
                 traceback.print_exc()
