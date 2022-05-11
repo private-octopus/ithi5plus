@@ -25,5 +25,5 @@ in_dir = sys.argv[1]
 f_list = build_file_list(in_dir)
 for p in f_list:
     if p.endswith(".bz2") or p.endswith(".dat"):
-        if "6_as" in p:
+        if "6-as" in p:
             print(p)
