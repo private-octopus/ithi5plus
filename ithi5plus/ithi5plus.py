@@ -6,6 +6,7 @@ class ithi5_cc_as_sum:
     def __init__(self, cc):
         self.key = cc
         self.count = 0.0
+        self.w_count = 0.0
         self.open_count = 0.0
         self.nb_as = 0
         self.as_hits = []
@@ -21,6 +22,7 @@ class ithi5_cc_as_sum:
         nb_open = i5pe.count - i5pi.count
         ratio = nb_open/i5pe.count
         self.count += i5pe.count
+        self.w_count += i5pe.w_count
         self.open_count += nb_open
         self.nb_as += 1
         i_slot = int(10.0*ratio)
@@ -33,7 +35,7 @@ class ithi5_cc_as_sum:
         self.as_count[i_slot] += 1
 
     def csv_header():
-        s = 'cc,count,open,nb_as'
+        s = 'cc,count,w_count,open,nb_as'
         for i in range(0,10):
             s += ",h("+str(10*i)+"-"+str(10*(i+1))+"%)"
             s += ",o("+str(10*i)+"-"+str(10*(i+1))+"%)"
@@ -44,6 +46,7 @@ class ithi5_cc_as_sum:
     def csv_line(self):
         s = self.key
         s += "," + str(self.count)
+        s += "," + str(self.w_count)
         s += "," + str(self.open_count)
         s += "," + str(self.nb_as)
         for i in range(0,10):
@@ -57,6 +60,7 @@ class ithi5_as_cc_sum:
     def __init__(self, as_text):
         self.key = as_text
         self.count = 0.0
+        self.w_count = 0.0
         self.open_count = 0.0
         self.nb_cc = 0
         self.best_cc = ""
@@ -74,6 +78,7 @@ class ithi5_as_cc_sum:
         nb_open = i5pe.count - i5pi.count
         ratio = nb_open/i5pe.count
         self.count += i5pe.count
+        self.w_count += i5pe.w_count
         self.open_count += nb_open
         self.nb_cc += 1
         if i5pe.count > self.best_cc_count:
@@ -89,7 +94,7 @@ class ithi5_as_cc_sum:
         self.cc_count[i_slot] += 1
 
     def csv_header():
-        s = 'as,count,open,nb_cc,bcc,bcount,'
+        s = 'as,count,w_count,open,nb_cc,bcc,bcount,'
         for i in range(0,10):
             s += ",h("+str(10*i)+"-"+str(10*(i+1))+"%)"
             s += ",o("+str(10*i)+"-"+str(10*(i+1))+"%)"
@@ -100,6 +105,7 @@ class ithi5_as_cc_sum:
     def csv_line(self):
         s = self.key
         s += "," + str(self.count)
+        s += "," + str(self.w_count)
         s += "," + str(self.open_count)
         s += "," + str(self.nb_cc)
         s += "," + self.best_cc
@@ -112,12 +118,13 @@ class ithi5_as_cc_sum:
         return s
 
     def csv_short_header():
-        s = 'as,count,open,ratio,nb_cc,bcc,cc_ratio\n'
+        s = 'as,count,w_count,open,ratio,nb_cc,bcc,cc_ratio\n'
         return s
     
     def csv_short_line(self):
         s = self.key
         s += "," + str(self.count)
+        s += "," + str(self.w_count)
         s += "," + str(self.open_count)
         s += "," + str(self.open_count/self.count)
         s += "," + str(self.nb_cc)
@@ -126,6 +133,8 @@ class ithi5_as_cc_sum:
         s += '\n'
         return s
 
+
+# Main code
 file_path = sys.argv[1]
 file_parts = []
 
@@ -213,5 +222,77 @@ else:
         F.write(ithi5_as_cc_sum.csv_short_header())
         for as_text in as_cc_sum:
             F.write(as_cc_sum[as_text].csv_short_line())
+
+    # save a shortened value of the file
+    # but first, get a list of the relevant services
+
+    service_list = [
+        "allopnrvrs",
+        "sameas",
+        "samecc",
+        "diffcc",
+        "cloudflare",
+        "cnnic",
+        "dnspai",
+        "dnspod",
+        "dnswatch",
+        "dyn",
+        "freedns",
+        "googlepdns",
+        "greenteamdns",
+        "he",
+        "level3",
+        "neustar",
+        "onedns",
+        "opendns",
+        "opennic",
+        "quad9",
+        "uncensoreddns",
+        "vrsgn",
+        "yandex",
+        "comodo",
+        "safedns",
+        "freenom",
+        "cleanbrowsing",
+        "alternatedns",
+        "puntcat",
+        "alidns",
+        "baidu",
+        "114dns",
+        "quad101",
+        "xopnrvrs",
+        "incc",
+        "outcc",
+        "inccx",
+        "outccx",
+        "diffcceu",
+        "diffccneu"
+        ]
+
+    with open(sys.argv[6],"wt") as F:
+        F.write("as,cc,samples,weight")
+        for srv in service_list:
+            F.write("," + srv)
+        F.write("\n")
+        for i5pe in ithi5.entries:
+            weight = 0
+            if i5pe.w_count > 0 and i5pe.count > 0:
+                weight = i5pe.w_count/i5pe.count
+            F.write(i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count) + "," + str(weight))
+            for srv in service_list:
+                s_samples = 0
+                if srv in i5pe.items:
+                    s_samples = i5pe.items[srv].count
+                elif srv in i5pe.cc_items:
+                    s_samples = i5pe.cc_items[srv].count
+                elif srv in i5pe.tot_items:
+                    s_samples = i5pe.tot_items[srv].count
+                F.write(",")
+                if s_samples > 0:
+                    F.write('{0:.0f}'.format(s_samples))
+            F.write("\n")
+
+
+
 
 

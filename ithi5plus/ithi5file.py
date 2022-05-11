@@ -1,4 +1,5 @@
 #!/usr/local/opt/python/libexec/bin/python
+import bz2
 import sys
 import traceback
 
@@ -105,14 +106,14 @@ class ith5plus_entry:
 
     big_services = ["xopnrvrs", "googlepdns", "cloudflare", "dnspai", "opendns", "onedns", "level3", "114dns", "quad9", "greenteamdns" ]
     def write_simple_count(self, F):
-        F.write(self.as_text + "," + self.cc + "," + str(self.count))
+        F.write(self.as_text + "," + self.cc + "," + str(self.count) + "," + str(self.w_count))
         for service in ith5plus_entry.big_services:
             i5pi = self.items[service]
             F.write("," + str(i5pi.count))
         F.write("\n")
 
     def write_simple_count_header(F):
-        F.write("AS,CC,count")
+        F.write("AS,CC,count,w_count,")
         for service in ith5plus_entry.big_services:
             F.write("," + service)
         F.write("\n")
@@ -120,7 +121,6 @@ class ith5plus_entry:
 
 class ithi5plus_file:
     def __init__(self, file_name, year, month, day):
-        print("Inside init file")
         self.file_name = file_name
         self.year = year
         self.month = month
@@ -129,11 +129,16 @@ class ithi5plus_file:
 
     def load_file(self):
         try:
-            # parse each line of the 
-            for line in open(self.file_name, "r"):
+            # parse each line of the file
+            if self.file_name.endswith(".bz2"):
+                F = bz2.open(self.file_name,"rt")
+            else:
+                F = open(self.file_name, "r")
+            for line in F:
                 i5pe = ith5plus_entry(self.file_name, self.year, self.month, self.day)
                 i5pe.load_line(line)
                 self.entries.append(i5pe)
+            F.close()
         except Exception as e:
             traceback.print_exc()
             print("\nException: " + str(e))
