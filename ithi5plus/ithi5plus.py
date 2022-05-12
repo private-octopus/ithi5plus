@@ -259,26 +259,19 @@ else:
         "alidns",
         "baidu",
         "114dns",
-        "quad101",
-        "xopnrvrs",
-        "incc",
-        "outcc",
-        "inccx",
-        "outccx",
-        "diffcceu",
-        "diffccneu"
+        "quad101"
         ]
 
     with open(sys.argv[6],"wt") as F:
-        F.write("as,cc,samples,weight")
+        F.write("as,cc,samples")
         for srv in service_list:
             F.write("," + srv)
         F.write("\n")
         for i5pe in ithi5.entries:
-            weight = 0
-            if i5pe.w_count > 0 and i5pe.count > 0:
-                weight = i5pe.w_count/i5pe.count
-            F.write(i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count) + "," + str(weight))
+            # weight = 0
+            # if i5pe.w_count > 0 and i5pe.count > 0:
+            #     weight = i5pe.w_count/i5pe.count
+            F.write(i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count)) # + "," + str(weight))
             for srv in service_list:
                 s_samples = 0
                 if srv in i5pe.items:
@@ -289,7 +282,8 @@ else:
                     s_samples = i5pe.tot_items[srv].count
                 F.write(",")
                 if s_samples > 0:
-                    F.write('{0:.0f}'.format(s_samples))
+                    s_share = 100*s_samples/i5pe.count
+                    F.write('{0:.5f}'.format(s_share) + '%')
             F.write("\n")
 
 

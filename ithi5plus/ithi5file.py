@@ -2,6 +2,39 @@
 import bz2
 import sys
 import traceback
+import os
+from os.path import isfile, isdir, join
+
+# Extract the list of files from the directory
+def build_file_list(this_dir):
+    this_list = []
+    for file_name in os.listdir(this_dir):
+        p = join(this_dir, file_name)
+        if isdir(p):
+            x = build_file_list(p)
+            for fp in x:
+                this_list.append(fp)
+        elif (p.endswith(".bz2") or p.endswith(".dat")) and "6-as" in p:
+            this_list.append(p)
+    return this_list
+
+# infer date from file path
+def date_from_file_path(file_path):
+    year = "0000"
+    month = "00"
+    day = "00"
+    if "/" in file_path:
+        file_parts = file_path.split("/")
+    else:
+        file_parts = file_path.split("\\")
+
+    if len(file_path) < 4:
+        print("Cannot find date in " + file_path)
+    else:
+        year = file_parts[-4]
+        month = file_parts[-3]
+        day = file_parts[-2]
+    return year, month, day
 
 # Parsing the input file, building the required object
 # if needed, saving as a set of flat files per country, AS, provider, data,
@@ -137,7 +170,8 @@ class ithi5plus_file:
             for line in F:
                 i5pe = ith5plus_entry(self.file_name, self.year, self.month, self.day)
                 i5pe.load_line(line)
-                self.entries.append(i5pe)
+                if i5pe.as_text != "AS0" and i5pe.count > 100:
+                    self.entries.append(i5pe)
             F.close()
         except Exception as e:
             traceback.print_exc()
