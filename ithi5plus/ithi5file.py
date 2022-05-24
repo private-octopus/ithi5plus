@@ -218,4 +218,35 @@ class ithi5plus_file:
             for i5pe in self.entries:
                 i5pe.write_simple_count(F)
 
+    def write_demographics(self, file_path, service_list):
+        with open(file_path,"wt") as F:
+            F.write("as,cc,samples")
+            for srv in service_list:
+                F.write("," + srv)
+            F.write("\n")
+            for i5pe in self.entries:
+                F.write(i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count))
+                for srv in service_list:
+                    s_samples = 0
+                    if srv in i5pe.items:
+                        s_samples = i5pe.items[srv].count
+                    elif srv in i5pe.cc_items:
+                        s_samples = i5pe.cc_items[srv].count
+                    elif srv in i5pe.tot_items:
+                        s_samples = i5pe.tot_items[srv].count
+                    F.write(",")
+                    if s_samples > 0:
+                        s_share = 100*s_samples/i5pe.count
+                        decimal_format = '{0:.1f}'
+                        if s_share < 0.001:
+                            decimal_format = '{0:.5f}'
+                        elif s_share < 0.01:
+                            decimal_format = '{0:.4f}'
+                        elif s_share < 0.1:
+                            decimal_format = '{0:.3f}'
+                        elif s_share < 1:
+                            decimal_format = '{0:.2f}'
+                        F.write(decimal_format.format(s_share) + '%')
+                F.write("\n")
+
 
