@@ -90,7 +90,7 @@ def demographics(source_folder, target_folder, year, month):
                 source_day = join(source_month, day)
                 if isdir(source_day):
                     for source_file_name in os.listdir(source_day):
-                        if (source_file_name.endswith(".bz2") or source_file_name.endswith(".dat")) and "6-as" in source_file_name:
+                        if (source_file_name.endswith(".bz2") or source_file_name.endswith(".dat")) and "1st-6-as" in source_file_name:
                             # build a target file name and path
                             target_file_name = "rvr-as-cc-" + year + "-" + month + "-" + day + ".csv"
                             target_file_path = join(target_year, target_file_name)
