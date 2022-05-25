@@ -101,7 +101,8 @@ def demographics(source_folder, target_folder, year, month):
                                 try:
                                     ithi5 = ithi5file.ithi5plus_file(source_file_path, year, month, day)
                                     ithi5.load_file()
-                                    ithi5.write_demographics(target_file_path, service_list)
+                                    capture_date = year + "-" + month + "-" + day
+                                    ithi5.write_demographics(target_file_path, service_list, capture_date)
                                     print("Saved " + target_file_path)
                                 except Exception as e:
                                     print("Cannot save demographics: " + source_file_path)

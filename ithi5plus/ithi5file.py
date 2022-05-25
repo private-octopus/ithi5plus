@@ -218,14 +218,14 @@ class ithi5plus_file:
             for i5pe in self.entries:
                 i5pe.write_simple_count(F)
 
-    def write_demographics(self, file_path, service_list):
+    def write_demographics(self, file_path, service_list, capture_date):
         with open(file_path,"wt") as F:
-            F.write("as,cc,samples")
+            F.write("capture-date,as,cc,samples")
             for srv in service_list:
                 F.write("," + srv)
             F.write("\n")
             for i5pe in self.entries:
-                F.write(i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count))
+                F.write(capture_date + "," + i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count))
                 for srv in service_list:
                     s_samples = 0
                     if srv in i5pe.items:
