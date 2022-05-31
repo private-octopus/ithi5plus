@@ -15,18 +15,22 @@ class m10_per_country:
         self.cc = cc
         self.count = 0
         self.open_dns_count = 0
-        self.ases = dict()
         self.open_dns = dict()
+        self.tot_items = dict()
 
     def load(self, ithi5e):
         self.count += ithi5e.count
-        if not ithi5e.as_text in self.ases:
-            self.ases[ithi5e.as_text] = m10_as_per_cc(ithi5e.as_text)
-        self.ases[ithi5e.as_text].count += ithi5e.count
+
+        for tot_i in ithi5e.tot_items:
+            tot_x = tot_i
+            if tot_x == "sameas":
+                tot_x = "samecc"
+            if not tot_x in self.tot_items:
+                self.tot_items[tot_x] = 0
+            self.tot_items[tot_x] += ithi5e.tot_items[tot_i].count
         if "allopnrvrs" in ithi5e.tot_items:
             open_dns_count = ithi5e.tot_items["allopnrvrs"].count
             self.open_dns_count += open_dns_count
-            self.ases[ithi5e.as_text].open_dns_count += open_dns_count
         for odns in ithi5e.items:
             if odns == "xopnrvrs":
                 continue
@@ -37,41 +41,42 @@ class m10_per_country:
                     self.open_dns[odns] = ithi5e.items[odns].count
 
     def write_m10_line(F, sub_metric, last_day_of_month, key, v):
-        F.write(sub_metric + "," + last_day_of_month + ",v2.0," + key + "," + str(v) + "\n")
+        # format fractions using at most three digits
+        iv = int(v)
+        decimal_format = '{0:.0f}'
+        if iv != v:
+            if v < 0.00001:
+                decimal_format = '{0:.8f}'
+            elif v < 0.0001:
+                decimal_format = '{0:.7f}'
+            elif v < 0.001:
+                decimal_format = '{0:.6f}'
+            elif v < 0.01:
+                decimal_format = '{0:.5f}'
+            elif v < 0.1:
+                decimal_format = '{0:.4f}'
+            else:
+                decimal_format = '{0:.3f}'
+        F.write(sub_metric + "," + last_day_of_month + ",v2.0," + key + "," + decimal_format.format(v) + "\n")
 
     def write_m10(self, F, last_day_of_month):
         sub10 = "M10." + self.cc + "."
-        # fraction of open resolver services
-        m10_per_country.write_m10_line(F, sub10 + "1", last_day_of_month, "", self.open_dns_count/self.count)
+        # fraction of open resolver services, and other per country statistics
+        for tot_i in self.tot_items:
+            m10_per_country.write_m10_line(F, sub10 + "1", last_day_of_month, tot_i, self.tot_items[tot_i]/self.count)
         # main open resolvers
         for odns in self.open_dns:
             m10_per_country.write_m10_line(F, sub10 + "2", last_day_of_month, odns, self.open_dns[odns]/self.count)
-        # fraction of ASes delegating <= 10%
-        # fraction of ASes delegating >= 90%
-        nb_as = len(self.ases)
-        if nb_as > 0:
-            nb_10pc = 0
-            nb_90pc = 0
-            for as_text in self.ases:
-                if self.ases[as_text].open_dns_count <= 0.1*self.ases[as_text].count:
-                    nb_10pc += 1
-                elif self.ases[as_text].open_dns_count >= 0.9*self.ases[as_text].count:
-                    nb_90pc += 1
-            m10_per_country.write_m10_line(F, sub10 + "3", last_day_of_month, "", nb_10pc/nb_as)
-            m10_per_country.write_m10_line(F, sub10 + "4", last_day_of_month, "", nb_90pc/nb_as)
-        # number of ASes
-        m10_per_country.write_m10_line(F, sub10 + "5", last_day_of_month, "", nb_as)
         # number of samples
-        m10_per_country.write_m10_line(F, sub10 + "6", last_day_of_month, "", self.count)
+        m10_per_country.write_m10_line(F, sub10 + "3", last_day_of_month, "", self.count)
 
     def add(self,other):
         self.count += other.count
         self.open_dns_count += other.open_dns_count
-        for as_text in other.ases:
-            if not as_text in self.ases:
-                self.ases[as_text] = m10_as_per_cc(as_text)
-            self.ases[as_text].count += other.ases[as_text].count
-            self.ases[as_text].open_dns_count += other.ases[as_text].open_dns_count
+        for tot_i in other.tot_items:
+            if not tot_i in self.tot_items:
+                self.tot_items[tot_i] = 0
+            self.tot_items[tot_i] += other.tot_items[tot_i]
         for odns in other.open_dns:
             if odns in self.open_dns:
                 self.open_dns[odns] += other.open_dns[odns]
