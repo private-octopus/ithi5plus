@@ -14,7 +14,7 @@ def build_file_list(this_dir):
             x = build_file_list(p)
             for fp in x:
                 this_list.append(fp)
-        elif (p.endswith(".bz2") or p.endswith(".dat")) and "6-as" in p:
+        elif (p.endswith(".bz2") or p.endswith(".dat")) and "1st-6-as" in p:
             this_list.append(p)
     return this_list
 
