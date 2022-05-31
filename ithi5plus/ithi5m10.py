@@ -108,15 +108,12 @@ def buildm10(source_folder, target_folder, year, month):
         print("Not a directory: " + source_month)
         return
     for day in range(1,last_day + 1):
-        sys.stdout.write(".")
         s_day = str(day)
         if day < 10:
             s_day = "0" + str(day)
         source_day = join(source_month, s_day)
         if isdir(source_day):
             for p in ithi5file.build_file_list(source_day):
-                print("\nStart " + p + " at " + str(datetime.datetime.now()))
-                ithi5 = ithi5file.ithi5plus_file(p, year, month, s_day)
                 ithi5.load_file()
                 print("Read " + p + " at " + str(datetime.datetime.now()))
                 for i5pe in ithi5.entries:
@@ -124,7 +121,6 @@ def buildm10(source_folder, target_folder, year, month):
                         cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
                     cc_data_list[i5pe.cc].load(i5pe)
                 print("Loaded " + p + " at " + str(datetime.datetime.now()))
-    sys.stdout.write("\n")
     if len(cc_data_list) == 0:
         print("Could not find any file in " + source_month)
         return
@@ -133,7 +129,7 @@ def buildm10(source_folder, target_folder, year, month):
     for cc in cc_data_list:
         zz_data.add(cc_data_list[cc])
     # Write the metrics:
-    metric_day = year + month + str(last_day)
+    metric_day = year + "-" + month + "-" + str(last_day)
     metric_file_name = "M10-" + metric_day + ".csv"
     metric_file_path = join(target_folder, metric_file_name)
     with open(metric_file_path,"wt") as F:
