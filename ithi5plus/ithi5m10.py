@@ -108,6 +108,7 @@ def buildm10(source_folder, target_folder, year, month):
         print("Not a directory: " + source_month)
         return
     for day in range(1,last_day + 1):
+        sys.stdout.write(".")
         s_day = str(day)
         if day < 10:
             s_day = "0" + str(day)
@@ -120,6 +121,7 @@ def buildm10(source_folder, target_folder, year, month):
                     if not i5pe.cc in cc_data_list:
                         cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
                     cc_data_list[i5pe.cc].load(i5pe)
+    sys.stdout.write("\n")
     if len(cc_data_list) == 0:
         print("Could not find any file in " + source_month)
         return
@@ -135,7 +137,7 @@ def buildm10(source_folder, target_folder, year, month):
         zz_data.write_m10(F,metric_day)
         for cc in cc_data_list:
             cc_data_list[cc].write_m10(F,metric_day)
-    print("Saved " + str(len(cc_data_list)) + " in " + metric_file_path)
+    print("Saved data for " + str(len(cc_data_list)) + " countries in " + metric_file_path)
 
 def usage():
     print("Usage:")
