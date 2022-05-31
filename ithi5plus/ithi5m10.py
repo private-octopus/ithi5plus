@@ -114,8 +114,8 @@ def buildm10(source_folder, target_folder, year, month):
         source_day = join(source_month, s_day)
         if isdir(source_day):
             for p in ithi5file.build_file_list(source_day):
+                ithi5 = ithi5file.ithi5plus_file(p, year, month, s_day)
                 ithi5.load_file()
-                print("Read " + p + " at " + str(datetime.datetime.now()))
                 for i5pe in ithi5.entries:
                     if not i5pe.cc in cc_data_list:
                         cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
