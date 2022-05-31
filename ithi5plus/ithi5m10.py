@@ -45,30 +45,30 @@ class m10_per_country:
         iv = int(v)
         decimal_format = '{0:.0f}'
         if iv != v:
-            if v < 0.00001:
-                decimal_format = '{0:.8f}'
-            elif v < 0.0001:
-                decimal_format = '{0:.7f}'
-            elif v < 0.001:
-                decimal_format = '{0:.6f}'
-            elif v < 0.01:
-                decimal_format = '{0:.5f}'
-            elif v < 0.1:
-                decimal_format = '{0:.4f}'
-            else:
-                decimal_format = '{0:.3f}'
+            decimal_format = '{0:.4f}'
         F.write(sub_metric + "," + last_day_of_month + ",v2.0," + key + "," + decimal_format.format(v) + "\n")
 
     def write_m10(self, F, last_day_of_month):
         sub10 = "M10." + self.cc + "."
         # fraction of open resolver services, and other per country statistics
-        for tot_i in self.tot_items:
-            m10_per_country.write_m10_line(F, sub10 + "1", last_day_of_month, tot_i, self.tot_items[tot_i]/self.count)
-        # main open resolvers
+        allopen = 0
+        samecc = 0
+        diffcc = 0
+        if "allopnrvrs" in self.tot_items:
+            allopen = self.tot_items["allopnrvrs"]
+        if "samecc" in self.tot_items:
+            samecc = self.tot_items["samecc"]
+        if "diffcc" in self.tot_items:
+            diffcc = self.tot_items["diffcc"]
+        m10_per_country.write_m10_line(F, sub10 + "1", last_day_of_month, "", allopen/self.count)
+        m10_per_country.write_m10_line(F, sub10 + "2", last_day_of_month, "", samecc/self.count)
+        m10_per_country.write_m10_line(F, sub10 + "3", last_day_of_month, "", diffcc/self.count)
+        min_value = self.count * 0.00005
         for odns in self.open_dns:
-            m10_per_country.write_m10_line(F, sub10 + "2", last_day_of_month, odns, self.open_dns[odns]/self.count)
+            if self.open_dns[odns] > min_value:
+                m10_per_country.write_m10_line(F, sub10 + "4", last_day_of_month, odns, self.open_dns[odns]/self.count)
         # number of samples
-        m10_per_country.write_m10_line(F, sub10 + "3", last_day_of_month, "", self.count)
+        m10_per_country.write_m10_line(F, sub10 + "5", last_day_of_month, "", self.count)
 
     def add(self,other):
         self.count += other.count
