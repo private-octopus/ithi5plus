@@ -112,15 +112,18 @@ def buildm10(source_folder, target_folder, year, month):
         s_day = str(day)
         if day < 10:
             s_day = "0" + str(day)
-        source_day = join(source_year, s_day)
+        source_day = join(source_month, s_day)
         if isdir(source_day):
             for p in ithi5file.build_file_list(source_day):
+                print("\nStart " + p + " at " + str(datetime.datetime.now()))
                 ithi5 = ithi5file.ithi5plus_file(p, year, month, s_day)
                 ithi5.load_file()
+                print("Read " + p + " at " + str(datetime.datetime.now()))
                 for i5pe in ithi5.entries:
                     if not i5pe.cc in cc_data_list:
                         cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
                     cc_data_list[i5pe.cc].load(i5pe)
+                print("Loaded " + p + " at " + str(datetime.datetime.now()))
     sys.stdout.write("\n")
     if len(cc_data_list) == 0:
         print("Could not find any file in " + source_month)
