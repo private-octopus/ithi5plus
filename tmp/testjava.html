@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function changeFunc() {
+  var obj = document.getElementById("mySelect");
+  document.getElementById("selection").innerHTML =
+      obj.options[obj.selectedIndex].value;
+}
+
+function getOption() {
+  var obj = document.getElementById("mySelect");
+  document.getElementById("demo").innerHTML = 
+      obj.options[obj.selectedIndex].text;
+}
+</script>
+</head>
+<body>
+
+<form>
+Select your favorite fruit:
+<select id="mySelect" onchange="changeFunc()" onload="changeFunc()">
+  <option value="AP">Apple</option>
+  <option value="OR">Orange</option>
+  <option value="PI">Pineapple</option>
+  <option value="BA">Banana</option>
+</select>
+<br><br>
+<input type="button" onclick="getOption()" value="Click Me!">
+</form>
+<h2>Selection</h2>
+<p id="selection"></p>
+<h2>Demo</h2>
+<p id="demo"></p>
+
+</body>
+</html>

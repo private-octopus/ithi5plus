@@ -170,7 +170,7 @@ class ithi5plus_file:
             for line in F:
                 i5pe = ith5plus_entry(self.file_name, self.year, self.month, self.day)
                 i5pe.load_line(line)
-                if i5pe.as_text != "AS0" and i5pe.count > 100:
+                if i5pe.as_text != "AS0" and i5pe.count > 100 and i5pe.cc != "ZZ":
                     self.entries.append(i5pe)
             F.close()
         except Exception as e:
