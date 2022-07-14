@@ -170,7 +170,7 @@ class ithi5plus_file:
             for line in F:
                 i5pe = ith5plus_entry(self.file_name, self.year, self.month, self.day)
                 i5pe.load_line(line)
-                if i5pe.as_text != "AS0" and i5pe.count > 100 and i5pe.cc != "ZZ":
+                if i5pe.as_text != "AS0" and i5pe.cc != "ZZ":
                     self.entries.append(i5pe)
             F.close()
         except Exception as e:
@@ -218,6 +218,8 @@ class ithi5plus_file:
             for i5pe in self.entries:
                 i5pe.write_simple_count(F)
 
+    # The "write demographics" function runs every day, exports data
+    # for the "demographis" project.
     def write_demographics(self, file_path, service_list, capture_date):
         with open(file_path,"wt") as F:
             F.write("capture-date,as,cc,samples")
@@ -225,6 +227,9 @@ class ithi5plus_file:
                 F.write("," + srv)
             F.write("\n")
             for i5pe in self.entries:
+                # Filter out entries with fewer than 100 hits.
+                if i5pe.count < 100:
+                    continue;
                 F.write(capture_date + "," + i5pe.as_text + "," + i5pe.cc + "," + '{0:.0f}'.format(i5pe.count))
                 for srv in service_list:
                     s_samples = 0

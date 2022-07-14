@@ -5,6 +5,9 @@ import os
 from os.path import isfile, isdir, join
 import datetime
 
+eu_cc_list = [ "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"]
+eu_cc_set = set(eu_cc_list)
+
 class m10_as_per_cc :
     def __init__(self, as_text):
         self.as_text = as_text
@@ -98,6 +101,8 @@ def buildm10(source_folder, target_folder, year, month):
     # compute the last day of the month
     # Load the files for dir/year/month/*
     cc_data_list = dict()
+    cc_as_data_list = dict()
+    nb_days = 0
     last_day = last_day_of_month(year, month)
     source_year = join(source_folder, year)
     if not isdir(source_year):
@@ -107,33 +112,61 @@ def buildm10(source_folder, target_folder, year, month):
     if not isdir(source_month):
         print("Not a directory: " + source_month)
         return
+    # Sum all the entries per as and cc
     for day in range(1,last_day + 1):
         s_day = str(day)
         if day < 10:
             s_day = "0" + str(day)
         source_day = join(source_month, s_day)
         if isdir(source_day):
+            nb_days += 1
             for p in ithi5file.build_file_list(source_day):
                 ithi5 = ithi5file.ithi5plus_file(p, year, month, s_day)
                 ithi5.load_file()
                 for i5pe in ithi5.entries:
-                    if not i5pe.cc in cc_data_list:
-                        cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
-                    cc_data_list[i5pe.cc].load(i5pe)
+                    key = i5pe.cc + "-" + i5pe.as_text;
+                    if not key in cc_as_data_list:
+                        cc_as_data_list[key] = i5pe;
+                    else:
+                        cc_as_data_list[key].add_lists(i5pe);
                 print("Loaded " + p + " at " + str(datetime.datetime.now()))
+    # Consider now all as+cc entries that have at least 100 hits per day on average,
+    # add them per contry.
+    hits_required = 100*nb_days
+    hits_medium = 1000*nb_days
+    hits_high = 10000*nb_days
+    for key in cc_as_data_list:
+        i5pe = cc_as_data_list[key]
+        as_class = "medium"
+        if i5pe.count >= hits_required:
+            if not i5pe.cc in cc_data_list:
+                cc_data_list[i5pe.cc] = m10_per_country(i5pe.cc)
+            cc_data_list[i5pe.cc].load(i5pe)
+            open_dns_count = 0
+            if "allopnrvrs" in i5pe.tot_items:
+                open_dns_count = i5pe.tot_items["allopnrvrs"].count
+
+    # At this point, we have summary files for n days in the month
     if len(cc_data_list) == 0:
         print("Could not find any file in " + source_month)
         return
-    # Sum of all the files for the month
-    zz_data =  m10_per_country('ZZ')
+    # Sum of all the files for the month to get the 'ZZ' entry,
+    # and all the files in EU countries to get the "EU" entry.
+    zz_data = m10_per_country('ZZ')
+    eu_data = m10_per_country('EU')
     for cc in cc_data_list:
         zz_data.add(cc_data_list[cc])
+    for eu_cc in eu_cc_list:
+        if eu_cc in cc_data_list:
+            eu_data.add(cc_data_list[eu_cc])
+
     # Write the metrics:
     metric_day = year + "-" + month + "-" + str(last_day)
     metric_file_name = "M10-" + metric_day + ".csv"
     metric_file_path = join(target_folder, metric_file_name)
     with open(metric_file_path,"wt") as F:
         zz_data.write_m10(F,metric_day)
+        eu_data.write_m10(F,metric_day)
         for cc in cc_data_list:
             cc_data_list[cc].write_m10(F,metric_day)
     print("Saved data for " + str(len(cc_data_list)) + " countries in " + metric_file_path)
