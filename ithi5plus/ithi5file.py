@@ -137,16 +137,23 @@ class ith5plus_entry:
         ith5plus_entry.sum_dict(self.tot_items, other.tot_items, self.count, self.w_count)
         ith5plus_entry.sum_dict(self.cc_items, other.cc_items, self.count, self.w_count)
 
+    def get_pdns(self):
+        r = 0
+        if "allopnrvrs" in self.tot_items:
+            line_item = self.tot_items["allopnrvrs"]
+            r = line_item.count;
+        return r;
+
     big_services = ["xopnrvrs", "googlepdns", "cloudflare", "dnspai", "opendns", "onedns", "level3", "114dns", "quad9", "greenteamdns" ]
     def write_simple_count(self, F):
-        F.write(self.as_text + "," + self.cc + "," + str(self.count) + "," + str(self.w_count))
+        F.write(self.as_text + "," + self.cc + "," + str(self.count) + "," + str(self.w_count) + "," + str(self.get_pdns()))
         for service in ith5plus_entry.big_services:
             i5pi = self.items[service]
             F.write("," + str(i5pi.count))
         F.write("\n")
 
     def write_simple_count_header(F):
-        F.write("AS,CC,count,w_count,")
+        F.write("AS,CC,count,w_count,pdns")
         for service in ith5plus_entry.big_services:
             F.write("," + service)
         F.write("\n")
