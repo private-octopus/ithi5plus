@@ -41,6 +41,16 @@ def last_day_of_month(s_year, s_month):
         first_day_next_month += datetime.timedelta(1)
     return last_day_this_month.day
 
+def sanitize(name):
+    s = ""
+    for i in range(0, len(name)):
+        x = name[i]
+        if x == ",":
+            s += "."
+        elif x != "\"":
+            s += x
+    return s
+
 def cloudhunt(source_folder, target, as_file, year, month):
     # compute the last day of the month
     # Load the files for dir/year/month/*
@@ -92,8 +102,8 @@ def cloudhunt(source_folder, target, as_file, year, month):
         for i5pe in as_data:
             if i5pe.count >= hits_required:
                 asn = as_names.as_nb(i5pe.as_text)
-                asn_name = as_names.name(asn)
-                F.write("\"" + asn_name + "\",")
+                asn_name = sanitize(as_names.name(asn))
+                F.write(asn_name + ",")
                 i5pe.write_simple_count(F)
                 nb_saved += 1
     print("Saved data for " + str(nb_saved) + " ASes in " + target)

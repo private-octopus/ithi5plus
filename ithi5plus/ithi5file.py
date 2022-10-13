@@ -226,7 +226,7 @@ class ithi5plus_file:
                 i5pe.write_simple_count(F)
 
     # The "write demographics" function runs every day, exports data
-    # for the "demographis" project.
+    # for the "demographics" project.
     def write_demographics(self, file_path, service_list, capture_date):
         with open(file_path,"wt") as F:
             F.write("capture-date,as,cc,samples")
