@@ -142,7 +142,7 @@ def as_sum(source_folder, target_folder, year, month):
     with open(metric_file_path,"wt") as F:
         ithi5file.ith5plus_entry.write_simple_count_header(F)
         for key in cc_as_data_list:
-            if cc_as_data_list[key] >= hits_required and cc_as_data_list[key].as_text != "AS1" :
+            if cc_as_data_list[key].count >= hits_required and cc_as_data_list[key].as_text != "AS1" :
                 cc_as_data_list[key].write_simple_count(F)
     print("Saved data for " + str(len(cc_as_data_list)) + " ASes in " + metric_file_path)
 
