@@ -8,6 +8,24 @@ import datetime
 eu_cc_list = [ "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"]
 eu_cc_set = set(eu_cc_list)
 
+region_AP = ["AF","AQ","AM","AU","AZ","BH","BD","BT","BN","KH","CN","CX","CC","CK","CY","FJ","GE","HM",\
+    "HK","IN","ID","IR","IQ","IL","JP","JO","KZ","KI","KP","KR","KW","KG","LA","LB","MO","MY","MV","MH",\
+    "FM","MN","MM","NR","NP","NZ","NU","NF","OM","PK","PW","PS","PG","PH","QA","WS","SA","SG","SB","LK",\
+    "SY","TW","TJ","TH","TL","TK","TO","TR","TM","TV","AE","UZ","VU","VN","YE"]
+region_EUR = ["AX","AL","AD","AI","AW","AC","AT","BY","BE","BM","BA","BV","IO","BG","KY","HR","CW","CZ",\
+    "DK","EE","FK","FO","FI","FR","GF","PF","TF","DE","GI","GR","GL","GP","GG","VA","HU","IS","IE","IM",\
+    "IT","JE","LV","LI","LT","LU","MT","MQ","YT","MD","MC","ME","MS","NL","NC","MK","NO","PN","PL","PT",\
+    "RE","RO","RU","SH","PM","SM","RS","SK","SI","GS","ES","SJ","SE","CH","TC","UA","UK .GB","VG","WF"]
+region_AF = ["DZ","AO","BJ","BW","BF","BI","CM","CV","CF","TD","KM","CG","CD","CI","DJ","EG","GQ","ER",\
+    "SZ","ET","GA","GM","GH","GN","GW","KE","LS","LR","LY","MG","MW","ML","MR","MU","MA","MZ","NA","NE",\
+    "NG","RW","ST","SN","SC","SL","SO","ZA","SS","SD","TZ","TG","TN","UG","EH","ZM","ZW"]
+region_NA = ["AS","CA","GU","MP","PR","US","UM","VI"]
+region_LAC = ["AG","AR","BS","BB","BZ","BO","BQ","BR","CL","CO","CR","CU","DM","DO","EC","SV","GD","GT",\
+    "GY","HT","HN","JM","MX","NI","PA","PY","PE","BL","KN","LC","MF","VC","SX","SR","TT","UY","VE"]
+
+region_list = [ "XAP", "XEU", "XAF",  "XNA", "XLA" ]
+region_sets = [ set(region_AP), set(region_EUR), set(region_AF), set(region_NA), set(region_LAC) ]
+
 class m10_as_per_cc :
     def __init__(self, as_text):
         self.as_text = as_text
@@ -152,13 +170,17 @@ def buildm10(source_folder, target_folder, year, month):
         return
     # Sum of all the files for the month to get the 'ZZ' entry,
     # and all the files in EU countries to get the "EU" entry.
-    zz_data = m10_per_country('ZZ')
-    eu_data = m10_per_country('EU')
+    zz_data = m10_per_country('ZZZ')
+    region_data = []
+    for i in range(0, len(region_list)):
+        region_data.append(m10_per_country(region_list[i]))
+    
     for cc in cc_data_list:
         zz_data.add(cc_data_list[cc])
-    for eu_cc in eu_cc_list:
-        if eu_cc in cc_data_list:
-            eu_data.add(cc_data_list[eu_cc])
+        for i in range(0, len(region_list)):
+            if cc in region_sets[i]:
+                print(cc + " in " + region_list[i])
+                region_data[i].add(cc_data_list[cc])
 
     # Write the metrics:
     metric_day = year + "-" + month + "-" + str(last_day)
@@ -166,7 +188,9 @@ def buildm10(source_folder, target_folder, year, month):
     metric_file_path = join(target_folder, metric_file_name)
     with open(metric_file_path,"wt") as F:
         zz_data.write_m10(F,metric_day)
-        eu_data.write_m10(F,metric_day)
+        for region_dt in region_data:
+            print("Add metric for " + region_dt.cc)
+            region_dt.write_m10(F,metric_day)
         for cc in cc_data_list:
             cc_data_list[cc].write_m10(F,metric_day)
     print("Saved data for " + str(len(cc_data_list)) + " countries in " + metric_file_path)
