@@ -179,7 +179,6 @@ def buildm10(source_folder, target_folder, year, month):
         zz_data.add(cc_data_list[cc])
         for i in range(0, len(region_list)):
             if cc in region_sets[i]:
-                print(cc + " in " + region_list[i])
                 region_data[i].add(cc_data_list[cc])
 
     # Write the metrics:
@@ -189,7 +188,6 @@ def buildm10(source_folder, target_folder, year, month):
     with open(metric_file_path,"wt") as F:
         zz_data.write_m10(F,metric_day)
         for region_dt in region_data:
-            print("Add metric for " + region_dt.cc)
             region_dt.write_m10(F,metric_day)
         for cc in cc_data_list:
             cc_data_list[cc].write_m10(F,metric_day)
